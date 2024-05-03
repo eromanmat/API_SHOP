@@ -1,12 +1,25 @@
 
 
 
+import requests # type: ignore
 from src.utils import status_codes
 from flask import jsonify, request
-from src import db
+from src import db, app
 from src.models import *
-import requests, re
+import re
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_bcrypt import Bcrypt
+from datetime import timedelta
+from API_SHOP import config
+import secrets
 
+
+jwt_secret_key = secrets.token_hex(12)
+app.config['JWT_SECRET_KEY'] = jwt_secret_key
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
+
+    
 
 def invoice():
     data = request.get_json()
@@ -35,6 +48,8 @@ def add_account():
 
         email_check = r'^[a-zA-Z][a-zA-Z._%+-]{1,10}@[a-zA-Z]{1,15}\.[a-zA-Z]{2,4}$'
         password_check = r'^[^\s@]{4,10}$'
+
+        hash_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         
         existing_account = Accounts.query.filter_by(email=new_email).first()
 
@@ -58,14 +73,16 @@ def add_account():
             return jsonify({'error': 'not correct params in request. Password must by in range 1-20'}), status_codes['bad_request']
             
         # Создание нового аккаунта
-        new_account = Accounts(name=new_name, email=new_email, password=new_password, banned=False)
+        new_account = Accounts(name=new_name, email=new_email, password=hash_password, banned=False)
+
+        jwt_token = create_access_token(identity={'name': new_name}, expires_delta=timedelta(seconds=43200))
 
         # Добавление аккаунта в базу данных
         db.session.add(new_account)
         db.session.commit()
 
-        account_info = {'id': new_account.id, 'email': new_account.email}
-        return jsonify({'message': 'Account successfully created', 'account_info': account_info}), status_codes['created']
+        #account_info = {'id': new_account.id, 'email': new_account.email}
+        return jsonify({'token':jwt_token}), status_codes['created']
 
 
     except Exception as e:
