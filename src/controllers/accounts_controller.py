@@ -10,12 +10,10 @@ import re
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_bcrypt import Bcrypt
 from datetime import timedelta
-from API_SHOP import config
-import secrets
 
 
-jwt_secret_key = secrets.token_hex(12)
-app.config['JWT_SECRET_KEY'] = jwt_secret_key
+jwt_secret_key = '1a23bcgdsy78a98463sgytsa'
+app.config['JWT_SECRET_KEY'] = jwt_secret_key 
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
@@ -49,7 +47,6 @@ def add_account():
         email_check = r'^[a-zA-Z][a-zA-Z._%+-]{1,10}@[a-zA-Z]{1,15}\.[a-zA-Z]{2,4}$'
         password_check = r'^[^\s@]{4,10}$'
 
-        hash_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         
         existing_account = Accounts.query.filter_by(email=new_email).first()
 
@@ -73,15 +70,15 @@ def add_account():
             return jsonify({'error': 'not correct params in request. Password must by in range 1-20'}), status_codes['bad_request']
             
         # Создание нового аккаунта
+        hash_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         new_account = Accounts(name=new_name, email=new_email, password=hash_password, banned=False)
 
-        jwt_token = create_access_token(identity={'name': new_name}, expires_delta=timedelta(seconds=43200))
+        jwt_token = create_access_token(identity={'email': new_email}, expires_delta=timedelta(seconds=43200))
 
         # Добавление аккаунта в базу данных
         db.session.add(new_account)
         db.session.commit()
 
-        #account_info = {'id': new_account.id, 'email': new_account.email}
         return jsonify({'token':jwt_token}), status_codes['created']
 
 
@@ -95,12 +92,15 @@ def login_account():
         email = data.get('email')
         password = data.get('password')
 
-        account_info = {'id': account.id, 'email': account.email}
 
         if email and password:
-            account = Accounts.query.filter_by(email=email, password=password).first()
+            account = Accounts.query.filter_by(email=email).first()
             if account:
-                return jsonify({'message': 'Successful login', 'account_info': account_info}), status_codes['ok']
+                if bcrypt.check_password_hash(account.password,password):
+                    jwt_token = create_access_token(identity={'email': email}, expires_delta=timedelta(seconds=43200))
+                    return jsonify({'token':jwt_token}), status_codes['ok']
+                else: 
+                    return jsonify({'error': 'Invalid email or password'}), status_codes['bad_request']
             else:
                 return jsonify({'error': 'Invalid email or password'}), status_codes['bad_request']
         else:
@@ -114,16 +114,17 @@ def create_order():
         data = request.get_json()
 
         product_id = data.get('product_id')
-        account_id = data.get('account_id')
 
-        if not product_id or not account_id:
+
+        if not product_id:
             return jsonify({'error': 'Not all data is available'}), status_codes['bad_request']
 
+        email_token = get_jwt_identity()['email']
         product = Products.query.filter_by(id=product_id).first() 
-        account = Accounts.query.filter_by(id=account_id).first() 
+        account = Accounts.query.filter_by(email = email_token).first() 
 
-        if not product or not account:
-            return jsonify({'error': 'Product or account not found'}), status_codes['not_found']
+        if not product:
+            return jsonify({'error': 'Product not found'}), status_codes['not_found']
 
         # Проверяем, забанен ли аккаунт перед созданием заказа
         if account.banned:
@@ -131,13 +132,13 @@ def create_order():
 
         # Проверяем наличие достаточного количества товара перед созданием заказа
         if product.stock < 1: 
-            return jsonify({'error': 'Not enough stock available'}), status_codes['bad_request'] 
+            return jsonify({'error': 'Not enough stock available'}), status_codes['bad_request'] # Неверный статус 
 
         # Уменьшаем количество товара в наличии
         product.stock -= 1
 
         # Создаем новый заказ
-        new_order = Orders(product_id=product_id, account_id=account_id)
+        new_order = Orders(product_id=product_id, account_id=account.id)
         db.session.add(new_order)
         db.session.commit()
 

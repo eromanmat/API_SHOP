@@ -5,6 +5,7 @@ from src import app
 from src.controllers.accounts_controller import *
 from src.controllers.admin_controller import*
 from src.controllers.products_controller import*
+from flask_jwt_extended import jwt_required
 
 @app.route('/admin/products', methods=['POST'])
 def route_add_product():
@@ -71,7 +72,9 @@ def route_view_one_product(id):
     return view_one_product(id)
 
 @app.route('/accounts/orders', methods=['POST'])
+@jwt_required()
+#@check_ban() 
 def route_create_order():
-    return cancel_order()
+    return create_order()
 
 
