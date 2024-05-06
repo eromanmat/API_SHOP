@@ -24,9 +24,6 @@ def view_one_product(id):
     try:
         product = Products.query.get(id)
 
-        # Нужно найти по type_id сам type и отдавать его название
-
-        # Нужно найти по brand_id сам brand и отдавать его название
         if product:
 
             product_type = product.type.name

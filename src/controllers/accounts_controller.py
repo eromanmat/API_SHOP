@@ -128,11 +128,15 @@ def create_order():
 
         # Проверяем, забанен ли аккаунт перед созданием заказа
         if account.banned:
-            return jsonify({'error': 'Account is banned'}), status_codes['bad_request'] # Неверный статус
+            return jsonify({'error': 'Account is banned'}), status_codes['no_access']
 
+        # Проверяем наличие средств на балансе
+        if account.balance >= 0:
+            return jsonify({'error': "Not enough money on balance"}), status_codes['conflict']
+        
         # Проверяем наличие достаточного количества товара перед созданием заказа
         if product.stock < 1: 
-            return jsonify({'error': 'Not enough stock available'}), status_codes['bad_request'] # Неверный статус 
+            return jsonify({'error': 'Not enough stock available'}), status_codes['сonflict']  
 
         # Уменьшаем количество товара в наличии
         product.stock -= 1
@@ -172,7 +176,7 @@ def view_orders(id):
                 'product_type': product.type,
                 'product_brand': product.brand  
             }
-            
+
             orders_info.append(order_data)
 
         return jsonify({'orders': orders_info}), status_codes['ok']

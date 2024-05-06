@@ -53,6 +53,7 @@ def route_cancel_order(id):
     return cancel_order(id)
 
 @app.route('/accounts/invoice', methods=['POST'])
+@jwt_required()
 @ban_unban
 def route_invoice():
     return invoice()
@@ -71,6 +72,7 @@ def route_view_products():
     return view_products()
 
 @app.route('/products/<int:id>', methods=['GET'])
+@jwt_required()
 @ban_unban
 def route_view_one_product(id):
     return view_one_product(id)
@@ -82,6 +84,7 @@ def route_create_order():
     return create_order()
 
 @app.route('/accounts/view_orders/<int:id>', methods=['GET'])
+@jwt_required()
 @ban_unban
 def route_view_orders(id):
     return view_orders(id)
