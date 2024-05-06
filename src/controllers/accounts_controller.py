@@ -146,3 +146,36 @@ def create_order():
 
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']
+    
+def view_orders(id):
+    try:
+        data = request.get_json()  
+        account_id = data.get('id', id) 
+      
+        orders = Orders.query.filter_by(account_id=account_id).all()
+
+        if not orders:
+            return jsonify({"error": "Orders not found"}), status_codes['not_found']
+
+        orders_info = []
+
+        for order in orders:
+            product = order.product
+            type_product = product.type
+            brand_product = product.brand
+
+            order_data = {
+                'id': order.id,
+                'product_id': order.product_id,
+                'product_name': product.name,  
+                'product_price': product.price,
+                'product_type': product.type,
+                'product_brand': product.brand  
+            }
+            
+            orders_info.append(order_data)
+
+        return jsonify({'orders': orders_info}), status_codes['ok']
+       
+    except Exception as e:
+        return jsonify({'error': str(e)}), status_codes['server_error']
