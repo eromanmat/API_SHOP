@@ -153,10 +153,14 @@ def create_order():
     
 def view_orders(id):
     try:
-        data = request.get_json()  
-        account_id = data.get('id', id) 
-      
-        orders = Orders.query.filter_by(account_id=account_id).all()
+        
+        email_account = jwt_required()['email']
+        account = Accounts.query.filter_by(email=email_account).first()
+
+        if not account:
+            return jsonify({'error': "Account not found"}), status_codes['not_found']
+        
+        orders = Orders.query.filter_by(account_id=account.id).all()
 
         if not orders:
             return jsonify({"error": "Orders not found"}), status_codes['not_found']

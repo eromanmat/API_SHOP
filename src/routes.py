@@ -83,10 +83,10 @@ def route_view_one_product(id):
 def route_create_order():
     return create_order()
 
-@app.route('/accounts/view_orders/<int:id>', methods=['GET'])
+@app.route('/accounts/view_orders/', methods=['GET'])
 @jwt_required()
 @ban_unban
-def route_view_orders(id):
-    return view_orders(id)
+def route_view_orders():
+    return view_orders()
 
 
