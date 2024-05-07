@@ -5,8 +5,10 @@ from src import app
 from src.controllers.accounts_controller import *
 from src.controllers.admin_controller import *
 from src.controllers.products_controller import *
-from src.middlewares.banned_middleware import ban_unban
-from flask_jwt_extended import jwt_required
+from src.controllers.orders_controller import *
+
+
+
 
 @app.route('/admin/products', methods=['POST'])
 def route_add_product():
@@ -51,42 +53,3 @@ def route_change_order_state(id):
 @app.route('/admin/orders/cancel/<int:id>', methods=['POST'])
 def route_cancel_order(id):
     return cancel_order(id)
-
-@app.route('/accounts/invoice', methods=['POST'])
-@jwt_required()
-@ban_unban
-def route_invoice():
-    return invoice()
-
-@app.route('/accounts/register', methods=['POST'])
-def route_add_account():
-    return add_account()
-
-@app.route('/accounts/login', methods=['POST'])
-def route_login_account():
-    return login_account()
-
-@app.route('/products', methods=['GET'])
-@ban_unban
-def route_view_products():
-    return view_products()
-
-@app.route('/products/<int:id>', methods=['GET'])
-@jwt_required()
-@ban_unban
-def route_view_one_product(id):
-    return view_one_product(id)
-
-@app.route('/accounts/orders', methods=['POST'])
-@jwt_required()
-@ban_unban
-def route_create_order():
-    return create_order()
-
-@app.route('/accounts/view_orders/', methods=['GET'])
-@jwt_required()
-@ban_unban
-def route_view_orders():
-    return view_orders()
-
-
