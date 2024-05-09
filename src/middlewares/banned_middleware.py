@@ -17,9 +17,6 @@ def ban_unban(route):
             email_token = get_jwt_identity()['email']
             account = Accounts.query.filter_by(email=email_token).first()
 
-            if not account:
-                return jsonify({'message': 'Account not found'}), status_codes['not_found']
-
             if account.banned:
                 return jsonify({'mesage': ' Account is banned'}), status_codes['no_access']
 

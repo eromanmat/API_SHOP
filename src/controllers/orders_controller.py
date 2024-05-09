@@ -32,12 +32,14 @@ def create_order():
             return jsonify({'error': 'Account is banned'}), status_codes['no_access']
 
         # Проверяем наличие средств на балансе
-        if account.balance >= 0:
+        if account.balance < product.price:
             return jsonify({'error': "Not enough money on balance"}), status_codes['conflict']
         
         # Проверяем наличие достаточного количества товара перед созданием заказа
         if product.stock < 1: 
-            return jsonify({'error': 'Not enough stock available'}), status_codes['сonflict']  
+            return jsonify({'error': 'Not enough stock available'}), status_codes['conflict'] 
+        
+        account.balance -= product.price 
 
         # Уменьшаем количество товара в наличии
         product.stock -= 1
@@ -52,7 +54,7 @@ def create_order():
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']
     
-def view_orders(id):
+def view_orders():
     try:
         
         email_account = get_jwt_identity()['email']

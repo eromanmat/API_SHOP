@@ -29,7 +29,7 @@ def route_login_account():
 def route_create_order():
     return create_order()
 
-@app.route('/accounts/view_orders/', methods=['GET'])
+@app.route('/accounts/orders', methods=['GET'])
 @jwt_required()
 @ban_unban
 def route_view_orders():
