@@ -1,0 +1,29 @@
+
+
+
+                                API Documentation
+
+
+---------------------------------- Admin panel------------------------------
+
+                                Добавление продукта 
+Adress: http://127.0.0.1:5000/admin/products
+Method: POST
+Fields: 
+    * - required
+    * product_name   | string | Имя продукта
+    * product_price  | float  | Имя продукта
+    * product_stock  | int    | Имя продукта
+Response
+    - OK
+    status: 201, body: {message: Product successfully added}  
+    - ERROR
+    status 400, body: {'error': 'not correct params in request'}
+
+
+                                Удаление продукта
+Adress: http://127.0.0.1:5000/admin/products/<int:id>
+Method: DELETE
+Fields:
+    * - required
+    *id | int |
