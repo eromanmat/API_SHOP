@@ -10,6 +10,8 @@ class Accounts(db.Model):
     password = db.Column(db.String(10), nullable=False)
     banned = db.Column(db.Boolean, default=False)
     balance = db.Column(db.Float, nullable=False, default=0.0)
+    admin = db.Column(db.Boolean, default=False)
+
 
 class Products(db.Model):
     id = db.Column(db.Integer, primary_key=True)
