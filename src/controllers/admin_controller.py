@@ -7,6 +7,7 @@ from src import db
 from src.models import *
 
 
+
 def add_product():
     try:
         # Получение данных из JSON-запроса
