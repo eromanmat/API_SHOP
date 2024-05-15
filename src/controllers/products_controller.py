@@ -6,14 +6,44 @@ from src.models import*
 from src import db
 from flask import jsonify,request
 
+"""
+    Нам доступна в продуктах фильтрация по типу и по бренду 
+    Если фильтрация не отправлялась - отправить все продукты по лимиту и пейджу
+    Если отправился тип - отбираем продукты по типу и отправляем их +-
+    Если отправился бренд - отбираем продукту по бренду и отпрвляем их +-
+    Если отправился и бренд и тип - отбираем и по тому и по тому и отправляем +-
+"""
 
 def view_products():
     try:
         limit = request.args.get('limit', type = int)
         page = request.args.get('page', type = int)
 
+        type_filter = request.args.get("type_id", type = int)
+        brand_filter = request.args.get('brand_id', type = int)
+        
+        query = None
 
-        products = Products.query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
+        if type_filter and brand_filter:
+            query = Products.query.filter(Products.type_id==type_filter, Products.brand_id==brand_filter)
+        elif type_filter:
+            query = Products.query.filter(Products.type_id==type_filter)
+        elif brand_filter: 
+            query = Products.query.filter(Products.brand_id==brand_filter)
+
+        
+        if query:
+            products = query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
+        else:
+            products = Products.query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
+
+
+        #query = Products.query.filter(brand_id=3)
+        # and_, or_, not_ 
+        # query = Products.query.filter(Products.brand_id.in_([1, 3]))
+        # query = Products.query.filter(Products.brand_id==3,Products.type_id == 2)
+        # products = query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
+
         list_products = []
 
         for product in products.items:
