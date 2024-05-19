@@ -54,7 +54,7 @@ def create_order():
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']
     
-def view_orders():
+def view_orders(): # -------------------------------------
     try:
         
         email_account = get_jwt_identity()['email']
@@ -67,10 +67,20 @@ def view_orders():
 
         if not orders:
             return jsonify({"error": "Orders not found"}), status_codes['not_found']
+        
+        limit = request.args.get('limit', type = int)
+        page = request.args.get('page', type = int)
+
+        query = None
+
+        if query:
+            orders = query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
+        else:
+            orders = Orders.query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
 
         orders_info = []
 
-        for order in orders:
+        for order in orders.items:
             product = order.product
             type_product = product.type
             brand_product = product.brand
@@ -80,13 +90,21 @@ def view_orders():
                 'product_id': order.product_id,
                 'product_name': product.name,  
                 'product_price': product.price,
-                'product_type': product.type,
-                'product_brand': product.brand  
+                'product_type': type_product,
+                'product_brand': brand_product  
             }
 
             orders_info.append(order_data)
 
-        return jsonify({'orders': orders_info}), status_codes['ok']
+        return jsonify({
+            'orders': orders_info,
+            'count_products': orders.total,
+            'count_pages':  orders.pages,
+            'has_next': orders.has_next,
+            'has_prev': orders.has_prev,
+            'next_page': orders.next_num if orders.next_num else None,
+            'prev_page': orders.prev_num if orders.prev_num else None
+        })
        
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']

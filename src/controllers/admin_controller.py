@@ -59,62 +59,105 @@ def delete_product(id):
     
 
 def edit_product(id):
-    data = request.get_json()
+    try:
 
-    product_name = data.get('name')
-    product_price = data.get('price')
-    product_stock = data.get('stock')
+        data = request.get_json()
 
-    if product_name is None and product_price is None and product_stock is None:
-        return jsonify({'message': 'Update fields were not sent'}), status_codes['bad_request']
+        product_name = data.get('name')
+        product_price = data.get('price')
+        product_stock = data.get('stock')
 
-    product = Products.query.filter_by(id=id).first()
-    if product:
-        if not product_name is None:
-            product.name = product_name
-        if not product_price is None:
-            product.price = product_price
-        if not product_stock is None:         
-            product.stock = product_stock
-        
-        db.session.commit()
-        return jsonify({'message':'Product successfully updated'})
-    else:
-        return jsonify({'message': 'product not found'}), status_codes['not_found']
+        if product_name is None and product_price is None and product_stock is None:
+            return jsonify({'message': 'Update fields were not sent'}), status_codes['bad_request']
+
+        product = Products.query.filter_by(id=id).first()
+        if product:
+            if not product_name is None:
+                product.name = product_name
+            if not product_price is None:
+                product.price = product_price
+            if not product_stock is None:         
+                product.stock = product_stock
+            
+            db.session.commit()
+            return jsonify({'message':'Product successfully updated'})
+        else:
+            return jsonify({'message': 'product not found'}), status_codes['not_found']      
+    except Exception as e:
+        return jsonify({'error': str(e)}), status_codes['server_error']
     
 
 def get_product_one(id):
-    product = Products.query.filter_by(id=id).first()
+    try:
 
-    if product:
-        # Продукт найден
-        return jsonify({'id':product.id, 'name':product.name, 'price':product.price, 'stock':product.stock, 
-                        'type_id':product.type_id, 'brand_id':product.brand_id})
-    else:
-        # Продукт не найден
-        return jsonify({'message': "Product not found"}), status_codes['not_found']
+        product = Products.query.filter_by(id=id).first()
+
+        if product:
+            # Продукт найден
+            return jsonify({'id':product.id, 'name':product.name, 'price':product.price, 'stock':product.stock, 
+                            'type_id':product.type_id, 'brand_id':product.brand_id})
+        else:
+            # Продукт не найден
+            return jsonify({'message': "Product not found"}), status_codes['not_found']
+    except Exception as e:
+        return jsonify({'error': str(e)}), status_codes['server_error']
     
 
-def get_products():
-    data = request.args.to_dict()
-    query = Products.query
+def get_products(): # -----------------------------------------
+    try:
 
-    valid_data = {}
-    
-    for key,value in data.items():
-        if key in Products.__table__.columns:
-            valid_data[key] = value
+        data = request.args.to_dict()
+        query = Products.query
 
-    for key,value in valid_data.items():
-        query = query.filter(getattr(Products, key) == value)
+        valid_data = {}
+        
+        for key,value in data.items():
+            if key in Products.__table__.columns:
+                valid_data[key] = value
 
-    products = query.all() # [Product,Product,Product]
-    
-    list_product = []
-    for product in products:
-        dict_product = {'name':product.name, 'price':product.price, 'stock':product.stock, 'type_id':product.type_id, 'brand_id':product.brand_id}
-        list_product.append(dict_product)
-    return list_product
+        for key,value in valid_data.items():
+            query = query.filter(getattr(Products, key) == value)
+
+        products = query.all() # [Product,Product,Product]
+
+        limit = request.args.get('limit', type = int)
+        page = request.args.get('page', type = int)
+
+        type_filter = request.args.get("type_id", type = int)
+        brand_filter = request.args.get('brand_id', type = int)
+        
+        query = None
+
+        if type_filter and brand_filter:
+            query = Products.query.filter(Products.type_id==type_filter, Products.brand_id==brand_filter)
+        elif type_filter:
+            query = Products.query.filter(Products.type_id==type_filter)
+        elif brand_filter: 
+            query = Products.query.filter(Products.brand_id==brand_filter)
+
+        
+        if query:
+            products = query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
+        else:
+            products = Products.query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False)
+        
+        list_product = []
+        for product in products.items:
+            dict_product = {'name':product.name, 'price':product.price, 'stock':product.stock, 'type_id':product.type_id, 'brand_id':product.brand_id}
+            list_product.append(dict_product)
+
+        return jsonify({
+            'products': list_product,
+            'count_products': products.total,
+            'count_pages':  products.pages,
+            'has_next': products.has_next,
+            'has_prev': products.has_prev,
+            'next_page': products.next_num if products.next_num else None,
+            'prev_page': products.prev_num if products.prev_num else None
+        })
+       
+    except Exception as e:
+        return jsonify({'error': str(e)}), status_codes['server_error']
 
 
 def ban_account(id):
@@ -172,15 +215,42 @@ def get_account_by_id(id):
         return jsonify({'error': str(e)}), status_codes['server_error']
     
 
-def get_orders():
+def get_orders(): # ----------------------------------------------
     try:
         # Получение всех заказов
         orders = Orders.query.all()
 
-        # Преобразование заказов в список словарей для возврата в JSON
-        orders_info = [{'id': order.id, 'product_id': order.product_id, 'account_id': order.account_id} for order in orders]
+        limit = request.args.get('limit', type = int)
+        page = request.args.get('page', type = int)
 
-        return jsonify({'orders': orders_info})
+        query = None
+
+        if query:
+            orders = query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
+        else:
+            orders = Orders.query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False)
+
+        orders_info = []
+
+        for order in orders.items:
+            product = order.product
+            type_product = product.type
+            brand_product = product.brand
+
+        # Преобразование заказов в список словарей для возврата в JSON
+        orders_date = [{'id': order.id, 'product_id': order.product_id, 'account_id': order.account_id, 'product_type': type_product, 'product_brand': brand_product}]
+
+        orders_info.append(orders_info)
+
+        return jsonify({
+            'orders': orders_info,
+            'count_products': orders.total,
+            'count_pages':  orders.pages,
+            'has_next': orders.has_next,
+            'has_prev': orders.has_prev,
+            'next_page': orders.next_num if orders.next_num else None,
+            'prev_page': orders.prev_num if orders.prev_num else None
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']
     
