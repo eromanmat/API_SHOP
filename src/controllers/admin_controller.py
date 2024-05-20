@@ -51,7 +51,7 @@ def delete_product(id):
         if product:
             db.session.delete(product)
             db.session.commit()
-            return jsonify({'message': 'Product deleted successfully'})
+            return jsonify({'message': 'Product deleted successfully'}), status_codes['ok']
         else:
             return jsonify({'message': 'Product not found'}), status_codes['not_found']
     except Exception as e:
@@ -80,14 +80,14 @@ def edit_product(id):
                 product.stock = product_stock
             
             db.session.commit()
-            return jsonify({'message':'Product successfully updated'})
+            return jsonify({'message':'Product successfully updated'}), status_codes['ok']
         else:
             return jsonify({'message': 'product not found'}), status_codes['not_found']      
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']
     
 
-def get_product_one(id):
+def get_product_one(id): # api документация( что писать в body?)
     try:
 
         product = Products.query.filter_by(id=id).first()
@@ -95,7 +95,7 @@ def get_product_one(id):
         if product:
             # Продукт найден
             return jsonify({'id':product.id, 'name':product.name, 'price':product.price, 'stock':product.stock, 
-                            'type_id':product.type_id, 'brand_id':product.brand_id})
+                            'type_id':product.type_id, 'brand_id':product.brand_id}), status_codes['ok']
         else:
             # Продукт не найден
             return jsonify({'message': "Product not found"}), status_codes['not_found']
@@ -103,7 +103,7 @@ def get_product_one(id):
         return jsonify({'error': str(e)}), status_codes['server_error']
     
 
-def get_products(): # -----------------------------------------
+def get_products(): # -----------------------------------------(что писать в api документации непонятно)
     try:
 
         data = request.args.to_dict()
@@ -169,7 +169,7 @@ def ban_account(id):
             if not account.banned:  # Если учетная запись не заблокирована
                 account.banned = True  # Устанавливаем флаг блокировки
                 db.session.commit()  # Сохраняем изменения
-                return jsonify({'message': 'Account successfully banned'})
+                return jsonify({'message': 'Account successfully banned'}), status_codes['ok']
             else:
                 return jsonify({'message': 'Account already banned'}), status_codes['accepted']
         else:
@@ -196,7 +196,7 @@ def unban_account(id):
         return jsonify({'error': str(e)}), status_codes['server_error']
     
 
-def get_account_by_id(id):
+def get_account_by_id(id): # api документация( что писать в body?)###############
     try:
         # Поиск аккаунта по идентификатору
         account = Accounts.query.filter_by(id=id).first()
@@ -208,7 +208,7 @@ def get_account_by_id(id):
                 'name': account.name,
                 'email': account.email,
                 'banned': account.banned
-            })
+            }), status_codes['ok']
         else:
             return jsonify({'message': 'Account not found'}), status_codes['not_found']
     except Exception as e:

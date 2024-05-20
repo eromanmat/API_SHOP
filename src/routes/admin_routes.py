@@ -59,19 +59,19 @@ def route_unban_account(id):
 def route_get_account_by_id(id):
     return get_account_by_id(id)
 
-@app.route('/admin/orders', methods=['GET'])
+@app.route('/admin/orders', methods=['GET']) # как в api документации с токеном не понятно что писать
 @jwt_required()
 @admin_account
 def route_get_orders():
     return get_orders()
 
-@app.route('/admin/orders/accept/<int:id>', methods=['POST'])
+@app.route('/admin/orders/accept/<int:id>', methods=['POST']) # как в api документации с токеном не понятно что писать
 @jwt_required()
 @admin_account
 def route_change_order_state(id):
     return change_order_state(id)
 
-@app.route('/admin/orders/cancel/<int:id>', methods=['POST'])
+@app.route('/admin/orders/cancel/<int:id>', methods=['POST']) # как в api документации с токеном не понятно что писать
 @jwt_required()
 @admin_account
 def route_cancel_order(id):

@@ -3,27 +3,129 @@
 
                                 API Documentation
 
+****************************************************************************
+********************************* ADMIN PANEL ******************************
+****************************************************************************
 
----------------------------------- Admin panel------------------------------
 
-                                Добавление продукта 
+================================= Adding a product ======================
+
 Adress: http://127.0.0.1:5000/admin/products
 Method: POST
 Fields: 
     * - required
     * product_name   | string | Имя продукта
-    * product_price  | float  | Имя продукта
-    * product_stock  | int    | Имя продукта
+    * product_price  | float  | Цена продукта
+    * product_stock  | int    | Кол-во продукта
 Response
     - OK
     status: 201, body: {message: Product successfully added}  
     - ERROR
-    status 400, body: {'error': 'not correct params in request'}
+    status: 400, body: {'error': 'not correct params in request'}
 
 
-                                Удаление продукта
+=================================== Delete product ======================
+
 Adress: http://127.0.0.1:5000/admin/products/<int:id>
 Method: DELETE
 Fields:
     * - required
-    *id | int |
+    * id | int | ID продукта
+Response
+    - OK
+    status: 200, body: {'message': 'Product deleted successfully'}
+    - ERROR
+    status: 404, body: {'message': 'Product not found'}
+
+=================================== Edit product ============================
+
+Adress:  http://127.0.0.1:5000/admin/products/<int:id>
+Method: PUT
+Fields:
+    * - required
+    ~ - optional
+    * - id | int | ID продукта
+    ~ - product_name   | string | Имя продукта
+    ~ - product_price  | float  | Цена продукта
+    ~ - product_stock  | int    | Кол-во продукта
+Pesponse
+    - OK
+    status: 200, body: {'message':'Product successfully updated'}
+    - ERROR
+    status: 400, body: {'message': 'Update fields were not sent'}
+    status: 404, body: {'message': 'product not found'}
+
+=================================== Get product one =========================
+
+Adress: http://127.0.0.1:5000/admin/products/<int:id>
+Method: GET
+Fields:
+    * - required
+    ~ - optional
+    * - id | int | ID продукта
+Response
+    - OK
+    status: 200, body:
+    - ERROR
+    status: 404, body: {'message': "Product not found"}
+
+=================================== Get products ===================================
+
+Adress: http://127.0.0.1:5000/admin/products
+Method: GET
+Fields:
+    * - required
+    ~ - optional
+
+=================================== Banned account ===================================
+
+Adress: http://127.0.0.1:5000/admin/accounts/ban/<int:id>
+Method: POST
+Fields:
+    * - required
+    ~ - optional
+    * - id | int | ID аккаунта
+Response:
+    - OK
+    status: 200, body: {'message': 'Account successfully banned'}
+    status: 202, body: {'message': 'Account already banned'}
+    - ERROR
+    status: 404, body: {'message': 'Account not found'}
+
+=================================== Unbanned account ===================================
+
+Adress: http://127.0.0.1:5000/admin/accounts/unban/<int:id>
+Method: POST
+Fields:
+    * - required
+    ~ - optional
+    * - id | int | ID аккаунта
+Response:
+    - OK
+    status: 200, body: {'message': 'Account successfully unbanned'}
+    status: 202, body: {'message': 'Account already unbanned'}
+    - ERROR
+    status: 404, body: {'message': 'Account not found'}
+
+=================================== Search for an account by ID =========================
+
+Adress: http://127.0.0.1:5000/admin/accounts/<int:id>
+Method: GET
+Fields:
+    * - required
+    ~ - optional
+    * - id | int | ID аккаунта
+Response:
+    - OK
+    status: 200, body: 
+    - ERROR
+    status: 404, body: {'message': 'Account not found'}
+
+=================================== GET all orders ====================================
+
+Adress: http://127.0.0.1:5000/admin/orders
+Method: GET
+Fields:
+    * - required
+    ~ - optional
+    * - 
