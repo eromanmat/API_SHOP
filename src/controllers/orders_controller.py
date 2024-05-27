@@ -54,44 +54,36 @@ def create_order():
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']
     
-def view_orders(): # -------------------------------------
+def view_orders():# --------------------------------------------
     try:
-        
         email_account = get_jwt_identity()['email']
         account = Accounts.query.filter_by(email=email_account).first()
 
         if not account:
             return jsonify({'error': "Account not found"}), status_codes['not_found']
-        
-        orders = Orders.query.filter_by(account_id=account.id).all()
 
-        if not orders:
+        limit = request.args.get('limit', default=5, type=int)
+        page = request.args.get('page', default=1, type=int)
+
+        orders = Orders.query.filter_by(account_id=account.id).paginate(page=page, per_page=limit, max_per_page=5, error_out=False)
+
+        if not orders.items:
             return jsonify({"error": "Orders not found"}), status_codes['not_found']
-        
-        limit = request.args.get('limit', type = int)
-        page = request.args.get('page', type = int)
-
-        query = None
-
-        if query:
-            orders = query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
-        else:
-            orders = Orders.query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
 
         orders_info = []
 
         for order in orders.items:
             product = order.product
-            type_product = product.type
-            brand_product = product.brand
+            type_product = getattr(product.type, 'name', None)
+            brand_product = getattr(product.brand, 'name', None)
 
             order_data = {
                 'id': order.id,
                 'product_id': order.product_id,
-                'product_name': product.name,  
+                'product_name': product.name,
                 'product_price': product.price,
                 'product_type': type_product,
-                'product_brand': brand_product  
+                'product_brand': brand_product
             }
 
             orders_info.append(order_data)
@@ -99,12 +91,13 @@ def view_orders(): # -------------------------------------
         return jsonify({
             'orders': orders_info,
             'count_products': orders.total,
-            'count_pages':  orders.pages,
+            'count_pages': orders.pages,
             'has_next': orders.has_next,
             'has_prev': orders.has_prev,
-            'next_page': orders.next_num if orders.next_num else None,
-            'prev_page': orders.prev_num if orders.prev_num else None
+            'next_page': orders.next_num if orders.has_next else None,
+            'prev_page': orders.prev_num if orders.has_prev else None
         })
-       
+
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']
+

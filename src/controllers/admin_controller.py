@@ -103,59 +103,59 @@ def get_product_one(id): # api документация( что писать в 
         return jsonify({'error': str(e)}), status_codes['server_error']
     
 
-def get_products(): # -----------------------------------------(что писать в api документации непонятно)
+def get_products():# ---------------------------------------------
     try:
-
+        # Получаем параметры запроса
         data = request.args.to_dict()
+        limit = request.args.get('limit', type=int, default=5)
+        page = request.args.get('page', type=int, default=1)
+        type_filter = request.args.get("type_id", type=int)
+        brand_filter = request.args.get('brand_id', type=int)
+
+        # Создаем базовый запрос
         query = Products.query
 
+        # Фильтрация по параметрам из запроса
         valid_data = {}
-        
-        for key,value in data.items():
+        for key, value in data.items():
             if key in Products.__table__.columns:
                 valid_data[key] = value
 
-        for key,value in valid_data.items():
+        for key, value in valid_data.items():
             query = query.filter(getattr(Products, key) == value)
 
-        products = query.all() # [Product,Product,Product]
+        # Фильтрация по type_id и brand_id
+        if type_filter:
+            query = query.filter(Products.type_id == type_filter)
+        if brand_filter:
+            query = query.filter(Products.brand_id == brand_filter)
 
-        limit = request.args.get('limit', type = int)
-        page = request.args.get('page', type = int)
+        # Выполнение запроса с пагинацией
+        products = query.paginate(page=page, per_page=limit, max_per_page=5, error_out=False)
 
-        type_filter = request.args.get("type_id", type = int)
-        brand_filter = request.args.get('brand_id', type = int)
-        
-        query = None
-
-        if type_filter and brand_filter:
-            query = Products.query.filter(Products.type_id==type_filter, Products.brand_id==brand_filter)
-        elif type_filter:
-            query = Products.query.filter(Products.type_id==type_filter)
-        elif brand_filter: 
-            query = Products.query.filter(Products.brand_id==brand_filter)
-
-        
-        if query:
-            products = query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False) 
-        else:
-            products = Products.query.paginate(page=page,per_page=limit,max_per_page=5, error_out=False)
-        
+        # Формирование списка продуктов для вывода
         list_product = []
         for product in products.items:
-            dict_product = {'name':product.name, 'price':product.price, 'stock':product.stock, 'type_id':product.type_id, 'brand_id':product.brand_id}
+            dict_product = {
+                'name': product.name,
+                'price': product.price,
+                'stock': product.stock,
+                'type_id': product.type_id,
+                'brand_id': product.brand_id
+            }
             list_product.append(dict_product)
 
+        # Возвращаем JSON-ответ
         return jsonify({
             'products': list_product,
             'count_products': products.total,
-            'count_pages':  products.pages,
+            'count_pages': products.pages,
             'has_next': products.has_next,
             'has_prev': products.has_prev,
-            'next_page': products.next_num if products.next_num else None,
-            'prev_page': products.prev_num if products.prev_num else None
+            'next_page': products.next_num if products.has_next else None,
+            'prev_page': products.prev_num if products.has_prev else None
         })
-       
+
     except Exception as e:
         return jsonify({'error': str(e)}), status_codes['server_error']
 

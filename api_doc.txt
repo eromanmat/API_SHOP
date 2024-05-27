@@ -12,7 +12,9 @@
 
 Adress: http://127.0.0.1:5000/admin/products
 Method: POST
-Fields: 
+Headers: 
+    Authorization: Bearer TOKEN
+JSON: 
     * - required
     * product_name   | string | Имя продукта
     * product_price  | float  | Цена продукта
@@ -22,13 +24,17 @@ Response
     status: 201, body: {message: Product successfully added}  
     - ERROR
     status: 400, body: {'error': 'not correct params in request'}
+    status: 401, body: {'error': 'Не авторизован'}
+    status: 403,
+    status: 500,
 
 
 =================================== Delete product ======================
 
 Adress: http://127.0.0.1:5000/admin/products/<int:id>
 Method: DELETE
-Fields:
+Headers: 
+Query Params:
     * - required
     * id | int | ID продукта
 Response
@@ -39,12 +45,15 @@ Response
 
 =================================== Edit product ============================
 
+* - required
+~ - optional
+
 Adress:  http://127.0.0.1:5000/admin/products/<int:id>
 Method: PUT
-Fields:
-    * - required
-    ~ - optional
+Headers: 
+Query params: 
     * - id | int | ID продукта
+JSON:
     ~ - product_name   | string | Имя продукта
     ~ - product_price  | float  | Цена продукта
     ~ - product_stock  | int    | Кол-во продукта
@@ -129,3 +138,9 @@ Fields:
     * - required
     ~ - optional
     * - 
+
+****************************************************************************************
+************************************ Accounts Panel ************************************
+****************************************************************************************
+
+
